@@ -10,7 +10,7 @@ Create expression `1 + 2` with `Expr.app`.
 def z := Expr.const ``Nat.zero []
 
 /-- expression of `n : Nat` -/
-def natExpr: Nat → Expr
+def natExpr : Nat → Expr
 | 0 => z
 | n + 1 => .app (.const ``Nat.succ []) (natExpr n)
 
@@ -87,3 +87,77 @@ def add : Expr :=
 elab "add" : term => return add
 
 #check add
+
+/- ## 6
+Create expression `fun x, String.append "hello, " x`.
+-/
+
+/-- expression of `String : Type` -/
+def string : Expr := .const ``String []
+
+def hello : Expr :=
+  .lam `x string (
+    mkAppN (.const ``String.append []) #[
+      mkStrLit "hello, ",
+      .bvar 0
+    ]
+  )
+  BinderInfo.default
+
+elab "hello" : term => return hello
+
+#check hello
+
+/- ## 7
+Create expression `∀ x : Prop, x ∧ x`.
+-/
+
+def prop : Expr := .sort Level.zero
+
+def seven : Expr :=
+  .forallE
+    `x prop
+    (mkAppN (.const ``And []) #[.bvar 0, .bvar 0])
+    BinderInfo.default
+
+elab "seven" : term => return seven
+#check seven
+
+/- ## 8
+Create expression `Nat → String`.
+-/
+
+def eight : Expr :=
+  .forallE
+    `x nat
+    string
+    BinderInfo.default
+
+elab "eight" : term => return eight
+#check eight
+
+/- ## 9
+Create expression `fun (p : Prop) => (λ hP : p => hP)`.
+-/
+
+def nine : Expr :=
+  .lam `p prop (
+    .lam
+      `hP (.bvar 0) (.bvar 0)
+      BinderInfo.default
+  )
+  BinderInfo.default
+
+elab "nine" : term => return nine
+#check nine
+
+/- ## 10
+Create expression `Type 6`.
+-/
+
+def ten : Expr := .sort (7 : Level)
+
+#synth ∀ n, OfNat Level n
+
+elab "ten" : term => return ten
+#check ten
